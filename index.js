@@ -59,6 +59,56 @@ app.get("/getallapis", (req, res) => {
   res.status(200).send({ myapi, cityapi, freetimezoneapi, newaqiapi });
 });
 
+app.post("/converthms", (req, res) => {
+  const { value, type,mytimezone } = req.body;
+  let unix_timestamp = value;
+  var date = new Date(unix_timestamp * 1000);
+  let newdate = date.toLocaleString("en-US", { timeZone: mytimezone });
+  date = new Date(newdate);
+  var hours = date.getHours();
+  var minute = date.getMinutes();
+  var suffix = hours >= 12 ? "pm" : "am";
+  var hour = ((hours + 11) % 12) + 1 + " " + suffix;
+  hours = hours % 12 || 12;
+  let hourandmin = "",
+    onlyhour = hour;
+  if (minute < 10) {
+    hourandmin = hours + ":0" + minute + " " + suffix;
+  } else {
+    hourandmin = hours + ":" + minute + " " + suffix;
+  }
+
+  if (type === "curr") {
+    res.status(200).send({
+      myhms:
+        date.toLocaleDateString("locale", { weekday: "short" }) +
+        ", " +
+        date.getDate() +
+        " " +
+        date.toLocaleString("default", { month: "long" }) +
+        "  " +
+        hourandmin,
+    });
+  } else if (type === "hour") {
+    res.status(200).send({
+      myhms: onlyhour,
+    });
+  } else if (type === "minutes") {
+    res.status(200).send({
+      myhms: hourandmin,
+    });
+  } else if (type === "tom") {
+    res.status(200).send({
+      myhms:
+        date.toLocaleDateString("locale", { weekday: "short" }) +
+        ", " +
+        date.getDate() +
+        " " +
+        date.toLocaleString("default", { month: "long" }),
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Listening on ${port}...`);
 });
