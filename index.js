@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
+const axios = require("axios");
 const port = process.env.PORT || 8000;
 
 app.use(cors());
@@ -60,7 +60,7 @@ app.get("/getallapis", (req, res) => {
 });
 
 app.post("/converthms", (req, res) => {
-  const { value, type,mytimezone } = req.body;
+  const { value, type, mytimezone } = req.body;
   let unix_timestamp = value;
   var date = new Date(unix_timestamp * 1000);
   let newdate = date.toLocaleString("en-US", { timeZone: mytimezone });
@@ -106,6 +106,37 @@ app.post("/converthms", (req, res) => {
         " " +
         date.toLocaleString("default", { month: "long" }),
     });
+  }
+});
+
+app.post("/notifi", async (req, res) => {
+  const { expoPushToken, title, body } = req.body;
+  try {
+    const message = {
+      to: expoPushToken,
+      sound: "default",
+      title,
+      body,
+      data: { someData: "goes here" },
+    };
+
+    const resp = await axios.post(
+      "https://exp.host/--/api/v2/push/send",
+      message,
+      {
+        headers: {
+          Accept: "*/*",
+          "Accept-encoding": "gzip, deflate",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // console.log("Done -> ", resp.data);
+    res.status(200).send({ data: resp.data });
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
   }
 });
 
